@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"flag"
+	"os"
 
 	proxy "github.com/sarovkalach/go_proxychecker"
 	log "github.com/sirupsen/logrus"
@@ -22,15 +24,21 @@ func parseFlags() map[string]string {
 }
 
 func main() {
+	file, _ := os.OpenFile("../clean_proxy.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+
 	cfg := parseFlags()
 	checker := proxy.NewChecker(cfg)
 
 	log.SetLevel(log.DebugLevel)
-	go func(ch chan string) {
-		for proxy := range ch {
+	go func(writer *bufio.Writer) {
+		for proxy := range checker.ResCh {
 			log.Info(proxy)
+			writer.WriteString(proxy + "\n")
 		}
-	}(checker.ResCh)
+	}(writer)
+	defer writer.Flush()
 
 	checker.Start()
 }

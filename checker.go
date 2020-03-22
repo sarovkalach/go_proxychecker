@@ -14,7 +14,6 @@ import (
 
 const buffSize = 500000
 const (
-	// requestTimeout = 5
 	testURL = "https://example.com"
 )
 
@@ -46,7 +45,6 @@ func (c *checker) readFile(filename string) {
 	defer readFile.Close()
 
 	fileScanner := bufio.NewScanner(readFile)
-
 	for fileScanner.Scan() {
 		c.proxyList <- "http://" + fileScanner.Text()
 	}
@@ -64,7 +62,7 @@ func (c *checker) Start() {
 	nChunks := len(c.proxyList) / chunkSize
 	mod = len(c.proxyList) % chunkSize
 
-	log.Debug(fmt.Sprintf("nChunks: %d ChunkSize: %d Timeout: %d  MOd: %d", nChunks, chunkSize, c.timeout, mod))
+	log.Debug(fmt.Sprintf("nChunks: %d ChunkSize: %d Timeout: %d", nChunks, chunkSize, c.timeout))
 
 	for i := 0; i < nChunks; i++ {
 		chunk := make([]string, 0, chunkSize)
@@ -95,6 +93,7 @@ func (c *checker) processChunk(chunk []string) {
 		if resp.StatusCode == http.StatusOK {
 			c.ResCh <- proxy[7:]
 		}
+		fmt.Println(resp.StatusCode)
 	}
 	c.wg.Done()
 }
