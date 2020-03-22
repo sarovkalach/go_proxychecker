@@ -3,7 +3,6 @@ package proxy
 import (
 	"bufio"
 	"fmt"
-	"net/http"
 	"os"
 	"strconv"
 	"sync"
@@ -90,10 +89,10 @@ func (c *checker) processChunk(chunk []string) {
 	for _, proxy := range chunk {
 		request := req.NewRequest()
 		resp, _ := request.Get(testURL, proxy, c.timeout)
-		if resp.StatusCode == http.StatusOK {
-			c.ResCh <- proxy[7:]
+		if resp.StatusCode == -1 {
+			continue
 		}
-		fmt.Println(resp.StatusCode)
+		c.ResCh <- proxy[7:]
 	}
 	c.wg.Done()
 }

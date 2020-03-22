@@ -6,6 +6,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sarovkalach/go_requests v0.0.0-20200321175802-551a2907eb4c h1:D4BSXEnkUg8P5P7cfeo9BLhVCxx+fAWBrx5MjE9OW6M=
 github.com/sarovkalach/go_requests v0.0.0-20200321175802-551a2907eb4c/go.mod h1:Mg14A//cVuoghy0nNRQYJxCTE+sXY53o0/sYtBMA2UQ=
+github.com/sarovkalach/go_requests v0.0.0-20200322133422-d50b37593e51 h1:6BKmAZuIbaVuQVlDu7qKOoilYLN5VZFBeoUbCQlTYkc=
+github.com/sarovkalach/go_requests v0.0.0-20200322133422-d50b37593e51/go.mod h1:Mg14A//cVuoghy0nNRQYJxCTE+sXY53o0/sYtBMA2UQ=
 github.com/sirupsen/logrus v1.4.2 h1:SPIRibHv4MatM3XXNO2BJeFLZwZ2LvZgfQ5+UNI2im4=
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
