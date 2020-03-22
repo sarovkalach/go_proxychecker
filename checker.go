@@ -1,60 +1,100 @@
 package proxy
 
 import (
-	requests "github.com/sarovkalach/go_requests"
+	"bufio"
+	"fmt"
+	"net/http"
+	"os"
+	"strconv"
 	"sync"
+
+	req "github.com/sarovkalach/go_requests"
+	log "github.com/sirupsen/logrus"
 )
 
-// var threadCounter = func() string {
-//
-// }
+const buffSize = 500000
+const (
+	// requestTimeout = 5
+	testURL = "https://example.com"
+)
 
 type checker struct {
-	proxyList   []string
+	proxyList   chan string
 	threadCount int
+	timeout     int
 	wg          *sync.WaitGroup
+	ResCh       chan string
 }
 
-func newChecker(proxyList *[]string, nThreads int) *checker {
-	proxy := addTag(proxyList)
-	return &checker{
-		proxyList:   proxy,
+func NewChecker(cfg map[string]string) *checker {
+	nThreads, _ := strconv.Atoi(cfg["nThreads"])
+	requestTimeout, _ := strconv.Atoi(cfg["timeout"])
+	c := &checker{
+		proxyList:   make(chan string, buffSize),
 		threadCount: nThreads,
+		timeout:     requestTimeout,
 		wg:          &sync.WaitGroup{},
+		ResCh:       make(chan string),
 	}
+	c.readFile(cfg["file"])
+
+	return c
+}
+
+func (c *checker) readFile(filename string) {
+	readFile, _ := os.Open(filename)
+	defer readFile.Close()
+
+	fileScanner := bufio.NewScanner(readFile)
+
+	for fileScanner.Scan() {
+		c.proxyList <- "http://" + fileScanner.Text()
+	}
+
+	log.Debug(fmt.Sprintf("Len of proxylist: %d", len(c.proxyList)))
 }
 
 func (c *checker) Start() {
-
-}
-
-func addTag(proxyList *[]string) []string {
-	finalProxyList := make([]string, len(*proxyList))
-	for i, proxy := range *proxyList {
-		finalProxyList[i] = "http://" + proxy
-	}
-
-	return finalProxyList
-}
-
-func (c *checker) splitToChunks() {
 	chunkSize := len(c.proxyList) / c.threadCount
-	div := len(c.proxyList) / c.threadCount
+	mod := len(c.proxyList) / c.threadCount
 
-	if div != 0 {
+	if mod != 0 {
 		chunkSize++
 	}
+	nChunks := len(c.proxyList) / chunkSize
+	mod = len(c.proxyList) % chunkSize
 
+	log.Debug(fmt.Sprintf("nChunks: %d ChunkSize: %d Timeout: %d  MOd: %d", nChunks, chunkSize, c.timeout, mod))
+
+	for i := 0; i < nChunks; i++ {
+		chunk := make([]string, 0, chunkSize)
+
+		switch i {
+		case nChunks - 1:
+			for j := 0; j < mod; j++ {
+				chunk = append(chunk, <-c.proxyList)
+			}
+		default:
+			for j := 0; j < chunkSize; j++ {
+				chunk = append(chunk, <-c.proxyList)
+			}
+		}
+
+		c.wg.Add(1)
+		go c.processChunk(chunk)
+	}
+
+	c.wg.Wait()
+	close(c.ResCh)
 }
 
-func processChunk(chunk []string) []string {
-	results := make([]string, 0, len(chunk)/2)
-	wg := &sync.WaitGroup{}
-
+func (c *checker) processChunk(chunk []string) {
 	for _, proxy := range chunk {
-		wg.Add(1)
-		go func(wg *sync.WaitGroup) {
-			response := requests.Get()
-		}(wg)
+		request := req.NewRequest()
+		resp, _ := request.Get(testURL, proxy, c.timeout)
+		if resp.StatusCode == http.StatusOK {
+			c.ResCh <- proxy[7:]
+		}
 	}
+	c.wg.Done()
 }
