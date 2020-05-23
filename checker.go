@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	req "github.com/sarovkalach/go_requests"
 	log "github.com/sirupsen/logrus"
@@ -88,7 +89,8 @@ func (c *checker) Start() {
 func (c *checker) processChunk(chunk []string) {
 	for _, proxy := range chunk {
 		request := req.NewRequest()
-		resp, _ := request.Get(testURL, proxy, c.timeout)
+		request.Timeout(time.Duration(int32(c.timeout*1000)) * time.Millisecond)
+		resp, _ := request.Get(testURL, map[string]string{})
 		if resp.StatusCode == -1 {
 			continue
 		}
