@@ -88,10 +88,9 @@ func (c *checker) Start() {
 
 func (c *checker) processChunk(chunk []string) {
 	for _, proxy := range chunk {
-		request := req.NewRequest()
-		request.Timeout(time.Duration(int32(c.timeout*1000)) * time.Millisecond)
-		resp, _ := request.Get(testURL, map[string]string{})
-		if resp.StatusCode == -1 {
+		request := req.NewRequest().Get(proxy).Timeout(time.Duration(int32(c.timeout*1000)) * time.Millisecond)
+		resp, _ := request.Do()
+		if resp.StatusCode != 200 {
 			continue
 		}
 		c.ResCh <- proxy[7:]
